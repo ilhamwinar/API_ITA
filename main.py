@@ -9,22 +9,56 @@ from pathlib import Path
 from datetime import datetime
 import json
 import mysql.connector
-
+import subprocess
 
 #defini direktori    
 current_dir = os.getcwd()
 
+## FUNGSI UNTUK READ LOG
+def write_log(datalog):
+    waktulog = datetime.now()
+    dirpathlog = f"Log/"
+    os.makedirs(dirpathlog, exist_ok=True)
+    pathlog = f"{waktulog.strftime('%d%m%Y')}.log"
+    file_path = Path(f"{dirpathlog}/{pathlog}")
+    datalog = "[INFO] - " + datalog
+    if not file_path.is_file():
+        file_path.write_text(f"{waktulog.strftime('%d-%m-%Y %H:%M:%S')} - {datalog}\n")
+    else :
+        fb = open(f"{dirpathlog}/{pathlog}", "a")
+        fb.write(f"{waktulog.strftime('%d-%m-%Y %H:%M:%S')} - {datalog}\n")
+        fb.close
+    
+    print(f"{waktulog.strftime('%d-%m-%Y %H:%M:%S')} - {datalog}")
 
-import subprocess
-# global MyDBLocalCursor
+def write_log_error(datalog):
+    waktulog = datetime.now()
+    dirpathlog = f"Log/"
+    os.makedirs(dirpathlog, exist_ok=True)
+    pathlog = f"{waktulog.strftime('%d%m%Y')}.log"
+    file_path = Path(f"{dirpathlog}/{pathlog}")
+    datalog = "[ERROR] - " + datalog
+    if not file_path.is_file():
+        file_path.write_text(f"{waktulog.strftime('%d-%m-%Y %H:%M:%S')} - {datalog}\n")
+    else :
+        fb = open(f"{dirpathlog}/{pathlog}", "a")
+        fb.write(f"{waktulog.strftime('%d-%m-%Y %H:%M:%S')} - {datalog}\n")
+        fb.close
+    
+    print(f"{waktulog.strftime('%d-%m-%Y %H:%M:%S')} - {datalog}")
+
+#----------------------------------------------------------------------------------------------
 
 try:      
     MyDBLocal = mysql.connector.connect(host='127.0.0.1', database='db_aicctv',user='aicctv',password='Jmt02022!')
     MyDBLocalCursor = MyDBLocal.cursor()
 except mysql.connector.Error as error:
     # LOGGER.info(f'Failed connect to local server')
-    print(error)
+    write_log_error(lokasi_log, "CANNOT CONNECT TO DATABASE"):
     pass
+
+#-----------------------------------------------------------------------------------------------
+
 
 
 def parse_ita_process(gardu,database_connection):
@@ -230,6 +264,20 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["*"])
+
+@app.get("/status_auto")
+async def status_test():
+    try:
+        playsound(current_dir+"/sound_2.mp3")
+        write_log("PLAY SOUND VIA PLAYSOUND")
+        return {"status":"berhasil mode auto playsound"}
+    except:
+        write_log_error("GAGAL PLAY SOUND VIA PLAYSOUND")
+        return {"status":"tidak berhasil mode auto playsound"}
+
+@app.get("/get_ping")
+async def ping():
+    return {"status":"200"}
 
 @app.post("/db_service")
 async def db_service(request: Request):
